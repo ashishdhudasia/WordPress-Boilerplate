@@ -38,8 +38,15 @@ php $WP core install --url="$SITE_URL" --title="$SITE_TITLE" --admin_user="$ADMI
 echo "Installing and activating plugins..."
 php $WP plugin install contact-form-7 wk-google-analytics cookie-law-info --activate
 
-echo "Removing default plugins Hello Dolly and Akismet (if installed)..."
-php $WP plugin delete hello-dolly || echo "Hello Dolly plugin not found or already removed."
+echo "Removing Hello Dolly plugin file (hello.php) if exists..."
+if [ -f "wp-content/plugins/hello.php" ]; then
+  rm -f wp-content/plugins/hello.php
+  echo "Hello Dolly plugin file removed."
+else
+  echo "Hello Dolly plugin file not found."
+fi
+
+echo "Removing Akismet plugin folder if exists..."
 php $WP plugin delete akismet || echo "Akismet plugin not found or already removed."
 
 echo "Removing default themes except your custom theme ($THEME_NAME)..."
@@ -62,10 +69,8 @@ for id in $POST_IDS $PAGE_IDS; do
 done
 
 echo "Disabling comments site-wide..."
-# Disable comments on all posts and pages
 php $WP post update $(php $WP post list --post_type=post --format=ids) --comment_status=closed
 php $WP post update $(php $WP post list --post_type=page --format=ids) --comment_status=closed
-# Disable comments and pingbacks globally
 php $WP option update default_comment_status closed
 php $WP option update default_ping_status closed
 php $WP option update close_comments_for_old_posts 1
