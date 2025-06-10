@@ -85,4 +85,4 @@ echo "Cleaning up installation files..."
 
 rm -f install.sh setup.sh README.md wp-cli.phar
 
-echo "Installation complete! Visit $SITE_URL to start using your site."
+echo "Installation complete! Visit $SITE_URL to start using your current site."
