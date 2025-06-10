@@ -49,19 +49,21 @@ fi
 echo "Removing Akismet plugin folder if exists..."
 php $WP plugin delete akismet || echo "Akismet plugin not found or already removed."
 
-echo "Deactivating current active theme..."
-CURRENT_THEME=$(php $WP theme list --status=active --field=name)
-php $WP theme deactivate $CURRENT_THEME
-
-echo "Deleting all themes..."
-THEMES=$(php $WP theme list --field=name)
-for t in $THEMES; do
-  echo "Deleting theme: $t"
-  php $WP theme delete "$t"
-done
-
 echo "Installing and activating your custom theme: $THEME_NAME"
 php $WP theme install "$THEME_NAME" --activate
+
+echo "Deleting all other themes except $THEME_NAME..."
+THEMES=$(php $WP theme list --field=name)
+for t in $THEMES; do
+  if [[ "$t" != "$THEME_NAME" ]]; then
+    echo "Deleting theme: $t"
+    php $WP theme delete "$t"
+  fi
+done
+
+echo "Setting permalink structure to 'post name'..."
+php $WP option update permalink_structure '/%postname%/'
+php $WP rewrite flush --hard
 
 echo "Removing default sample posts and pages..."
 POST_IDS=$(php $WP post list --post_type=post --field=ID)
@@ -82,10 +84,6 @@ php $WP option update moderation_notify 0
 
 echo "Setting WordPress to discourage search engines..."
 php $WP option update blog_public 0
-
-echo "Setting permalink structure to 'post name'..."
-php $WP rewrite structure '/%postname%/' --hard
-php $WP rewrite flush --hard
 
 echo "Cleaning up installation files..."
 
