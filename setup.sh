@@ -10,6 +10,8 @@ read -s -p "Database Password: " DB_PASS
 echo
 read -p "Database Host (default: localhost): " DB_HOST
 DB_HOST=${DB_HOST:-localhost}
+read -p "Database Table Prefix (default: wp_): " DB_PREFIX
+DB_PREFIX=${DB_PREFIX:-wp_}
 read -p "Site URL (e.g. http://example.com): " SITE_URL
 read -p "Site Title: " SITE_TITLE
 read -p "Admin Username: " ADMIN_USER
@@ -27,7 +29,7 @@ echo "Downloading WordPress..."
 php $WP core download --force
 
 echo "Creating wp-config.php..."
-php $WP config create --dbname="$DB_NAME" --dbuser="$DB_USER" --dbpass="$DB_PASS" --dbhost="$DB_HOST" --skip-check
+php $WP config create --dbname="$DB_NAME" --dbuser="$DB_USER" --dbpass="$DB_PASS" --dbhost="$DB_HOST" --dbprefix="$DB_PREFIX" --skip-check
 
 echo "Creating database (if needed)..."
 php $WP db create || echo "Database exists or could not be created."
