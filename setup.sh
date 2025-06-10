@@ -38,6 +38,10 @@ php $WP core install --url="$SITE_URL" --title="$SITE_TITLE" --admin_user="$ADMI
 echo "Installing and activating plugins..."
 php $WP plugin install contact-form-7 wk-google-analytics cookie-law-info --activate
 
+echo "Removing default plugins Hello Dolly and Akismet (if installed)..."
+php $WP plugin delete hello-dolly || echo "Hello Dolly plugin not found or already removed."
+php $WP plugin delete akismet || echo "Akismet plugin not found or already removed."
+
 echo "Removing default themes except your custom theme ($THEME_NAME)..."
 THEMES=$(php $WP theme list --field=name)
 for t in $THEMES; do
@@ -51,14 +55,29 @@ echo "Activating your custom theme: $THEME_NAME"
 php $WP theme activate "$THEME_NAME"
 
 echo "Removing default sample posts and pages..."
-# Delete all posts/pages except those authored by admin (optional)
 POST_IDS=$(php $WP post list --post_type=post --field=ID)
 PAGE_IDS=$(php $WP post list --post_type=page --field=ID)
 for id in $POST_IDS $PAGE_IDS; do
   php $WP post delete $id --force
 done
 
+echo "Disabling comments site-wide..."
+# Disable comments on all posts and pages
+php $WP post update $(php $WP post list --post_type=post --format=ids) --comment_status=closed
+php $WP post update $(php $WP post list --post_type=page --format=ids) --comment_status=closed
+# Disable comments and pingbacks globally
+php $WP option update default_comment_status closed
+php $WP option update default_ping_status closed
+php $WP option update close_comments_for_old_posts 1
+php $WP option update close_comments_days_old 0
+php $WP option update comments_notify 0
+php $WP option update moderation_notify 0
+
 echo "Setting WordPress to discourage search engines..."
 php $WP option update blog_public 0
+
+echo "Cleaning up installation files..."
+
+rm -f install.sh setup.sh README.md wp-cli.phar
 
 echo "Installation complete! Visit $SITE_URL to start using your site."
