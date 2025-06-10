@@ -1,5 +1,8 @@
 wp-config.php
 wp-content/uploads/
 wp-cli.phar
+install.sh
+setup.sh
+README.md
 .git/
 .gitignore
