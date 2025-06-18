@@ -18,26 +18,18 @@ prompt_required() {
   done
 }
 
-# Function to prompt for sensitive (hidden) inputs
-prompt_required_secret() {
-  local var
-  while true; do
-    read -s -p "$1: " var
-    echo
-    if [[ -n "$var" ]]; then
-      eval "$2=\"$var\""
-      break
-    else
-      echo "❌ $1 is required. Please enter a value."
-    fi
-  done
+# Optional secret input
+prompt_optional_secret() {
+  read -s -p "$1 (optional): " val
+  echo
+  eval "$2=\"\$val\""
 }
 
 echo "🚀 Welcome to the WordPress Auto Installer"
 
 prompt_required "Database Name" DB_NAME
 prompt_required "Database User" DB_USER
-prompt_required_secret "Database Password" DB_PASS
+prompt_optional_secret "Database Password" DB_PASS
 
 read -p "Database Host (default: localhost): " DB_HOST
 DB_HOST=${DB_HOST:-localhost}
@@ -48,7 +40,7 @@ DB_PREFIX=${DB_PREFIX:-wp_}
 prompt_required "Site URL (e.g. http://example.com)" SITE_URL
 prompt_required "Site Title" SITE_TITLE
 prompt_required "Admin Username" ADMIN_USER
-prompt_required_secret "Admin Password" ADMIN_PASS
+prompt_required "Admin Password" ADMIN_PASS
 prompt_required "Admin Email" ADMIN_EMAIL
 prompt_required "Custom Theme Folder Name (inside wp-content/themes)" THEME_NAME
 
