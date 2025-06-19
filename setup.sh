@@ -21,8 +21,7 @@ prompt_required() {
   done
 }
 
-# Begin setup
-echo "🚀 Welcome to the WordPress Auto Installer (XAMPP Compatible)"
+echo "🚀 Welcome to the WordPress Auto Installer (XAMPP Friendly)"
 
 prompt_required "Database Name" DB_NAME
 prompt_required "Database User" DB_USER
@@ -36,7 +35,6 @@ prompt_required "Site URL (e.g. http://localhost/my-site)" SITE_URL
 prompt_required "Site Title" SITE_TITLE
 prompt_required "Admin Username" ADMIN_USER
 
-# Suggest random password
 echo
 echo "💡 Suggested Admin Password: "
 SUGGESTED_PASS=$(generate_password)
@@ -59,17 +57,14 @@ fi
 prompt_required "Admin Email" ADMIN_EMAIL
 prompt_required "Custom Theme Folder Name (inside wp-content/themes)" THEME_NAME
 
-# Check WP-CLI
 if [[ ! -f $WP ]]; then
   echo "❌ wp-cli.phar not found! Please make sure it's in this directory."
   exit 1
 fi
 
-# Download WordPress core
 echo "📥 Downloading WordPress..."
 php $WP core download --force
 
-# Create wp-config
 echo "⚙️ Creating wp-config.php..."
 php $WP config create \
   --dbname="$DB_NAME" \
@@ -79,7 +74,6 @@ php $WP config create \
   --dbprefix="$DB_PREFIX" \
   --skip-check
 
-# Install WP (assumes DB already exists)
 echo "📦 Installing WordPress..."
 php $WP core install \
   --url="$SITE_URL" \
@@ -89,22 +83,26 @@ php $WP core install \
   --admin_email="$ADMIN_EMAIL" \
   --skip-email
 
-# Install and activate plugins
 echo "🔌 Installing essential plugins..."
 php $WP plugin install contact-form-7 wk-google-analytics cookie-law-info --activate
 
-# Remove Hello Dolly and Akismet
-echo "🧹 Removing default plugins..."
-php $WP plugin delete hello-dolly akismet || true
+echo "🧹 Removing Hello Dolly plugin file (hello.php) if exists..."
+if [ -f "wp-content/plugins/hello.php" ]; then
+  rm -f wp-content/plugins/hello.php
+  echo "✅ Hello Dolly plugin file removed."
+else
+  echo "ℹ️ Hello Dolly plugin file not found."
+fi
 
-# Activate custom theme
+echo "🧹 Removing Akismet plugin if exists..."
+php $WP plugin delete akismet || echo "ℹ️ Akismet plugin not found or already removed."
+
 echo "🎨 Activating theme: $THEME_NAME"
 php $WP theme activate "$THEME_NAME" || {
   echo "❌ Theme '$THEME_NAME' not found in wp-content/themes."
   exit 1
 }
 
-# Delete all other themes
 echo "🧼 Removing other themes..."
 for t in $(php $WP theme list --field=name); do
   if [[ "$t" != "$THEME_NAME" ]]; then
@@ -112,19 +110,16 @@ for t in $(php $WP theme list --field=name); do
   fi
 done
 
-# Set permalink structure
 echo "🔗 Setting permalink structure..."
 php $WP option update permalink_structure '/%postname%/'
 php $WP rewrite flush --hard
 
-# Remove sample posts/pages
 echo "🧽 Deleting default posts/pages..."
 POSTS=$(php $WP post list --post_type=post,page --format=ids)
 if [[ -n "$POSTS" ]]; then
   php $WP post delete $POSTS --force
 fi
 
-# Disable comments
 echo "🚫 Disabling comments..."
 ALL_IDS=$(php $WP post list --post_type=any --format=ids)
 if [[ -n "$ALL_IDS" ]]; then
@@ -137,17 +132,14 @@ php $WP option update close_comments_days_old 0
 php $WP option update comments_notify 0
 php $WP option update moderation_notify 0
 
-# Discourage search indexing
 echo "🔒 Discouraging search engines..."
 php $WP option update blog_public 0
 
-# Cleanup (optional)
-echo "🧹 Cleaning up temporary files..."
+echo "🧹 Cleaning up installation files..."
 rm -f install.sh setup.sh README.md
 
-# Final message
 echo
 echo "✅ WordPress installation complete!"
-echo "🔗 Site URL: $SITE_URL"
+echo "🌐 Site URL: $SITE_URL"
 echo "👤 Admin Username: $ADMIN_USER"
-echo "🔑 Admin Password: $ADMIN_PASS"
+echo "🔐 Admin Password: $ADMIN_PASS"
