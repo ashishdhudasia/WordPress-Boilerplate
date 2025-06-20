@@ -108,7 +108,7 @@ wp option update siteurl "$SITE_URL"
 wp option update home "$SITE_URL"
 
 echo "🔌 Installing essential plugins..."
-wp plugin install contact-form-7 wk-google-analytics cookie-law-info --activate
+wp plugin install contact-form-7 wk-google-analytics cookie-law-info updraftplus --activate
 
 echo "🧹 Removing Hello Dolly plugin file (hello.php) if exists..."
 if [ -f "wp-content/plugins/hello.php" ]; then
