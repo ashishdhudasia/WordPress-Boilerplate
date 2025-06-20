@@ -1,8 +1,3 @@
-Great! Based on your installation approach, here’s a refined and concise **README.md** version that reflects the actual workflow you just described:
-
----
-
-````markdown
 # 🚀 WordPress Auto Installer (One-Command Setup)
 
 This script allows you to set up a fresh WordPress installation in your domain directory with just **one command**. It automatically clones a boilerplate, downloads WordPress, sets up configuration, installs plugins (like **UpdraftPlus**), and activates your custom theme.
