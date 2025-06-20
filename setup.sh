@@ -103,6 +103,10 @@ wp core install \
   --admin_email="$ADMIN_EMAIL" \
   --skip-email
 
+# ✅ Force correct site URL after install
+wp option update siteurl "$SITE_URL"
+wp option update home "$SITE_URL"
+
 echo "🔌 Installing essential plugins..."
 wp plugin install contact-form-7 wk-google-analytics cookie-law-info --activate
 
