@@ -40,13 +40,14 @@ DB_HOST=${DB_HOST:-localhost}
 read -p "Database Table Prefix (default: wp_): " DB_PREFIX
 DB_PREFIX=${DB_PREFIX:-wp_}
 
+# 🔒 Strict Site URL validation, no modification
 while true; do
   read -p "Site URL (e.g. https://basicplan.brightness-demo.com): " SITE_URL
-  SITE_URL=$(echo "$SITE_URL" | sed 's/comcom/com/' | sed 's#//*#/#g' | sed 's#/$##')
+  SITE_URL="${SITE_URL%%/}" # remove trailing slash only
   if [[ "$SITE_URL" =~ ^https?://[a-zA-Z0-9.-]+\.[a-z]{2,}$ ]]; then
     break
   else
-    echo "❌ Invalid URL format. Only use domain (no path)."
+    echo "❌ Invalid URL format. Must start with http:// or https:// and contain a valid domain."
   fi
 done
 
