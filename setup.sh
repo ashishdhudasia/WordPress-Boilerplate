@@ -1,7 +1,7 @@
 #!/bin/bash
 
 WP="./wp-cli.phar"
-export PHP_CLI="php -d memory_limit=512M"
+export PHP_CLI="php -d memory_limit=512M -d display_errors=Off"
 export WP_CLI_CACHE_DIR="$PWD/.wp-cli-cache"
 mkdir -p "$WP_CLI_CACHE_DIR"
 
@@ -16,7 +16,7 @@ prompt_required() {
   while true; do
     read -p "$1: " var
     if [[ -n "$var" ]]; then
-      eval "$2=\"\$var\""
+      eval "$2="\$var""
       break
     else
       echo "❌ $1 is required."
@@ -34,7 +34,16 @@ read -p "Database Host (default: localhost): " DB_HOST
 DB_HOST=${DB_HOST:-localhost}
 read -p "Database Table Prefix (default: wp_): " DB_PREFIX
 DB_PREFIX=${DB_PREFIX:-wp_}
-prompt_required "Site URL (e.g. http://localhost/my-site)" SITE_URL
+
+while true; do
+  read -p "Site URL (e.g. https://basicplan.brightness-demo.com): " SITE_URL
+  if [[ "$SITE_URL" =~ ^https?://[a-zA-Z0-9.-]+$ ]]; then
+    break
+  else
+    echo "❌ Invalid URL format. Only use domain (no path)."
+  fi
+done
+
 prompt_required "Site Title" SITE_TITLE
 prompt_required "Admin Username" ADMIN_USER
 
@@ -138,8 +147,8 @@ $PHP_CLI $WP option update moderation_notify 0
 echo "🔒 Discouraging search engines..."
 $PHP_CLI $WP option update blog_public 0
 
-echo "🧹 Cleaning up installation files..."
-rm -f install.sh setup.sh README.md
+echo "🗑️ Cleaning up WP CLI cache..."
+rm -rf .wp-cli-cache
 
 echo
 echo "✅ WordPress installation complete!"
