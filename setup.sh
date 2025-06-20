@@ -5,6 +5,11 @@ export PHP_CLI="php -d memory_limit=512M -d display_errors=Off"
 export WP_CLI_CACHE_DIR="$PWD/.wp-cli-cache"
 mkdir -p "$WP_CLI_CACHE_DIR"
 
+# Wrapper function to suppress warnings
+wp() {
+  $PHP_CLI $WP "$@" 2>/dev/null
+}
+
 # Generate a strong random password
 generate_password() {
   tr -dc 'A-Za-z0-9@#%^+=_' </dev/urandom | head -c 14
@@ -16,7 +21,7 @@ prompt_required() {
   while true; do
     read -p "$1: " var
     if [[ -n "$var" ]]; then
-      eval "$2="\$var""
+      eval "$2=\"$var\""
       break
     else
       echo "❌ $1 is required."
@@ -37,7 +42,8 @@ DB_PREFIX=${DB_PREFIX:-wp_}
 
 while true; do
   read -p "Site URL (e.g. https://basicplan.brightness-demo.com): " SITE_URL
-  if [[ "$SITE_URL" =~ ^https?://[a-zA-Z0-9.-]+$ ]]; then
+  SITE_URL=$(echo "$SITE_URL" | sed 's/comcom/com/' | sed 's#//*#/#g' | sed 's#/$##')
+  if [[ "$SITE_URL" =~ ^https?://[a-zA-Z0-9.-]+\.[a-z]{2,}$ ]]; then
     break
   else
     echo "❌ Invalid URL format. Only use domain (no path)."
@@ -75,10 +81,10 @@ if [[ ! -f $WP ]]; then
 fi
 
 echo "📥 Downloading WordPress..."
-$PHP_CLI $WP core download --force
+wp core download --force
 
 echo "⚙️ Creating wp-config.php..."
-$PHP_CLI $WP config create \
+wp config create \
   --dbname="$DB_NAME" \
   --dbuser="$DB_USER" \
   --dbpass="$DB_PASS" \
@@ -87,7 +93,8 @@ $PHP_CLI $WP config create \
   --skip-check
 
 echo "📦 Installing WordPress..."
-$PHP_CLI $WP core install \
+echo "🌐 Final Site URL: $SITE_URL"
+wp core install \
   --url="$SITE_URL" \
   --title="$SITE_TITLE" \
   --admin_user="$ADMIN_USER" \
@@ -96,7 +103,7 @@ $PHP_CLI $WP core install \
   --skip-email
 
 echo "🔌 Installing essential plugins..."
-$PHP_CLI $WP plugin install contact-form-7 wk-google-analytics cookie-law-info --activate
+wp plugin install contact-form-7 wk-google-analytics cookie-law-info --activate
 
 echo "🧹 Removing Hello Dolly plugin file (hello.php) if exists..."
 if [ -f "wp-content/plugins/hello.php" ]; then
@@ -107,45 +114,45 @@ else
 fi
 
 echo "🧹 Removing Akismet plugin if exists..."
-$PHP_CLI $WP plugin delete akismet || echo "ℹ️ Akismet plugin not found or already removed."
+wp plugin delete akismet || echo "ℹ️ Akismet plugin not found or already removed."
 
 echo "🎨 Activating theme: $THEME_NAME"
-$PHP_CLI $WP theme activate "$THEME_NAME" || {
+wp theme activate "$THEME_NAME" || {
   echo "❌ Theme '$THEME_NAME' not found in wp-content/themes."
   exit 1
 }
 
 echo "🧼 Removing other themes..."
-for t in $($PHP_CLI $WP theme list --field=name); do
+for t in $(wp theme list --field=name); do
   if [[ "$t" != "$THEME_NAME" ]]; then
-    $PHP_CLI $WP theme delete "$t"
+    wp theme delete "$t"
   fi
 done
 
 echo "🔗 Setting permalink structure..."
-$PHP_CLI $WP option update permalink_structure '/%postname%/'
-$PHP_CLI $WP rewrite flush --hard
+wp option update permalink_structure '/%postname%/'
+wp rewrite flush --hard
 
 echo "🧽 Deleting default posts/pages..."
-POSTS=$($PHP_CLI $WP post list --post_type=post,page --format=ids)
+POSTS=$(wp post list --post_type=post,page --format=ids)
 if [[ -n "$POSTS" ]]; then
-  $PHP_CLI $WP post delete $POSTS --force
+  wp post delete $POSTS --force
 fi
 
 echo "🚫 Disabling comments..."
-ALL_IDS=$($PHP_CLI $WP post list --post_type=any --format=ids)
+ALL_IDS=$(wp post list --post_type=any --format=ids)
 if [[ -n "$ALL_IDS" ]]; then
-  $PHP_CLI $WP post update $ALL_IDS --comment_status=closed
+  wp post update $ALL_IDS --comment_status=closed
 fi
-$PHP_CLI $WP option update default_comment_status closed
-$PHP_CLI $WP option update default_ping_status closed
-$PHP_CLI $WP option update close_comments_for_old_posts 1
-$PHP_CLI $WP option update close_comments_days_old 0
-$PHP_CLI $WP option update comments_notify 0
-$PHP_CLI $WP option update moderation_notify 0
+wp option update default_comment_status closed
+wp option update default_ping_status closed
+wp option update close_comments_for_old_posts 1
+wp option update close_comments_days_old 0
+wp option update comments_notify 0
+wp option update moderation_notify 0
 
 echo "🔒 Discouraging search engines..."
-$PHP_CLI $WP option update blog_public 0
+wp option update blog_public 0
 
 echo "🗑️ Cleaning up WP CLI cache..."
 rm -rf .wp-cli-cache
