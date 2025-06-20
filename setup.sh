@@ -1,6 +1,9 @@
 #!/bin/bash
 
 WP="./wp-cli.phar"
+export PHP_CLI="php -d memory_limit=512M"
+export WP_CLI_CACHE_DIR="$PWD/.wp-cli-cache"
+mkdir -p "$WP_CLI_CACHE_DIR"
 
 # Generate a strong random password
 generate_password() {
@@ -63,10 +66,10 @@ if [[ ! -f $WP ]]; then
 fi
 
 echo "📥 Downloading WordPress..."
-php $WP core download --force
+$PHP_CLI $WP core download --force
 
 echo "⚙️ Creating wp-config.php..."
-php $WP config create \
+$PHP_CLI $WP config create \
   --dbname="$DB_NAME" \
   --dbuser="$DB_USER" \
   --dbpass="$DB_PASS" \
@@ -75,7 +78,7 @@ php $WP config create \
   --skip-check
 
 echo "📦 Installing WordPress..."
-php $WP core install \
+$PHP_CLI $WP core install \
   --url="$SITE_URL" \
   --title="$SITE_TITLE" \
   --admin_user="$ADMIN_USER" \
@@ -84,7 +87,7 @@ php $WP core install \
   --skip-email
 
 echo "🔌 Installing essential plugins..."
-php $WP plugin install contact-form-7 wk-google-analytics cookie-law-info --activate
+$PHP_CLI $WP plugin install contact-form-7 wk-google-analytics cookie-law-info --activate
 
 echo "🧹 Removing Hello Dolly plugin file (hello.php) if exists..."
 if [ -f "wp-content/plugins/hello.php" ]; then
@@ -95,45 +98,45 @@ else
 fi
 
 echo "🧹 Removing Akismet plugin if exists..."
-php $WP plugin delete akismet || echo "ℹ️ Akismet plugin not found or already removed."
+$PHP_CLI $WP plugin delete akismet || echo "ℹ️ Akismet plugin not found or already removed."
 
 echo "🎨 Activating theme: $THEME_NAME"
-php $WP theme activate "$THEME_NAME" || {
+$PHP_CLI $WP theme activate "$THEME_NAME" || {
   echo "❌ Theme '$THEME_NAME' not found in wp-content/themes."
   exit 1
 }
 
 echo "🧼 Removing other themes..."
-for t in $(php $WP theme list --field=name); do
+for t in $($PHP_CLI $WP theme list --field=name); do
   if [[ "$t" != "$THEME_NAME" ]]; then
-    php $WP theme delete "$t"
+    $PHP_CLI $WP theme delete "$t"
   fi
 done
 
 echo "🔗 Setting permalink structure..."
-php $WP option update permalink_structure '/%postname%/'
-php $WP rewrite flush --hard
+$PHP_CLI $WP option update permalink_structure '/%postname%/'
+$PHP_CLI $WP rewrite flush --hard
 
 echo "🧽 Deleting default posts/pages..."
-POSTS=$(php $WP post list --post_type=post,page --format=ids)
+POSTS=$($PHP_CLI $WP post list --post_type=post,page --format=ids)
 if [[ -n "$POSTS" ]]; then
-  php $WP post delete $POSTS --force
+  $PHP_CLI $WP post delete $POSTS --force
 fi
 
 echo "🚫 Disabling comments..."
-ALL_IDS=$(php $WP post list --post_type=any --format=ids)
+ALL_IDS=$($PHP_CLI $WP post list --post_type=any --format=ids)
 if [[ -n "$ALL_IDS" ]]; then
-  php $WP post update $ALL_IDS --comment_status=closed
+  $PHP_CLI $WP post update $ALL_IDS --comment_status=closed
 fi
-php $WP option update default_comment_status closed
-php $WP option update default_ping_status closed
-php $WP option update close_comments_for_old_posts 1
-php $WP option update close_comments_days_old 0
-php $WP option update comments_notify 0
-php $WP option update moderation_notify 0
+$PHP_CLI $WP option update default_comment_status closed
+$PHP_CLI $WP option update default_ping_status closed
+$PHP_CLI $WP option update close_comments_for_old_posts 1
+$PHP_CLI $WP option update close_comments_days_old 0
+$PHP_CLI $WP option update comments_notify 0
+$PHP_CLI $WP option update moderation_notify 0
 
 echo "🔒 Discouraging search engines..."
-php $WP option update blog_public 0
+$PHP_CLI $WP option update blog_public 0
 
 echo "🧹 Cleaning up installation files..."
 rm -f install.sh setup.sh README.md
