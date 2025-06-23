@@ -29,7 +29,24 @@ prompt_required() {
   done
 }
 
-echo "🚀 Welcome to the WordPress Auto Installer (XAMPP Friendly)"
+echo "🚀 Welcome to the WordPress Auto Installer"
+
+echo
+echo "📦 Choose installation type:"
+echo "1) Basic Setup"
+echo "2) Full Setup"
+while true; do
+  read -p "Enter 1 or 2: " SETUP_TYPE
+  if [[ "$SETUP_TYPE" == "1" ]]; then
+    SETUP_MODE="basic"
+    break
+  elif [[ "$SETUP_TYPE" == "2" ]]; then
+    SETUP_MODE="full"
+    break
+  else
+    echo "❌ Invalid input. Please enter 1 or 2."
+  fi
+done
 
 prompt_required "Database Name" DB_NAME
 prompt_required "Database User" DB_USER
@@ -113,7 +130,11 @@ wp option update siteurl "$SITE_URL"
 wp option update home "$SITE_URL"
 
 echo "🔌 Installing essential plugins..."
-wp plugin install contact-form-7 wk-google-analytics cookie-law-info updraftplus --activate
+if [[ "$SETUP_MODE" == "full" ]]; then
+  wp plugin install contact-form-7 wk-google-analytics cookie-law-info updraftplus wordpress-seo --activate
+else
+  wp plugin install contact-form-7 wk-google-analytics cookie-law-info updraftplus --activate
+fi
 
 echo "🧹 Removing Hello Dolly plugin file (hello.php) if exists..."
 if [ -f "wp-content/plugins/hello.php" ]; then
