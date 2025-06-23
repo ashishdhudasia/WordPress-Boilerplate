@@ -35,6 +35,11 @@ prompt_required "Database Name" DB_NAME
 prompt_required "Database User" DB_USER
 read -s -p "Database Password (leave blank if none): " DB_PASS
 echo
+if [[ -n "$DB_PASS" ]]; then
+  echo "✔️ Database Password: ********"
+else
+  echo "ℹ️ No Database Password entered."
+fi
 read -p "Database Host (default: localhost): " DB_HOST
 DB_HOST=${DB_HOST:-localhost}
 read -p "Database Table Prefix (default: wp_): " DB_PREFIX
