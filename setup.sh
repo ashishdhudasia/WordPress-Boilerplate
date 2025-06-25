@@ -131,14 +131,15 @@ wp option update home "$SITE_URL"
 
 echo "🔌 Installing essential plugins..."
 if [[ "$SETUP_MODE" == "full" ]]; then
-  wp plugin install contact-form-7 wk-google-analytics cookie-law-info updraftplus --activate
+  wp plugin install contact-form-7 wk-google-analytics cookie-law-info updraftplus wordpress-seo --activate
 
   echo "📦 Installing custom ZIP plugins for full setup..."
 
-  for plugin_zip in wp-rocket_3.19.0.1.zip wp-schema-pro-2.10.1.zip seo-by-rank-math.1.0.247.zip; do
+  for plugin_zip in wp-rocket.zip schema-pro.zip rank-math.zip; do
     if [[ -f "$plugin_zip" ]]; then
       echo "🧩 Installing $plugin_zip..."
-      wp plugin install "$plugin_zip" --activate
+      wp plugin install "$plugin_zip" --activate && rm -f "$plugin_zip" && \
+        echo "🗑️ Removed $plugin_zip after installation."
     else
       echo "❌ Plugin ZIP '$plugin_zip' not found in the current directory."
     fi
