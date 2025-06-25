@@ -138,15 +138,21 @@ if [[ "$SETUP_MODE" == "full" ]]; then
   for plugin_zip in wp-rocket.zip schema-pro.zip rank-math.zip; do
     if [[ -f "$plugin_zip" ]]; then
       echo "🧩 Installing $plugin_zip..."
-      wp plugin install "$plugin_zip" --activate && rm -f "$plugin_zip" && \
-        echo "🗑️ Removed $plugin_zip after installation."
+      wp plugin install "$plugin_zip" --activate && echo "✅ Installed $plugin_zip"
     else
-      echo "❌ Plugin ZIP '$plugin_zip' not found in the current directory."
+      echo "❌ Plugin ZIP '$plugin_zip' not found."
     fi
   done
 else
   wp plugin install contact-form-7 wk-google-analytics cookie-law-info updraftplus --activate
 fi
+
+echo "🗑️ Cleaning up plugin ZIPs from server..."
+for plugin_zip in wp-rocket.zip schema-pro.zip rank-math.zip; do
+  if [[ -f "$plugin_zip" ]]; then
+    rm -f "$plugin_zip" && echo "🧼 Deleted $plugin_zip"
+  fi
+done
 
 echo "🧹 Removing Hello Dolly plugin file (hello.php) if exists..."
 if [ -f "wp-content/plugins/hello.php" ]; then
