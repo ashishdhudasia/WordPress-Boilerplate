@@ -148,7 +148,7 @@ else
 fi
 
 echo "🗑️ Cleaning up plugin ZIPs from server..."
-for plugin_zip in wp-rocket_3.19.0.1.zip wp-schema-pro-2.10.1.zip seo-by-rank-math.1.0.247.zip; do
+for plugin_zip in wp-rocket_3.19.0.1.zip wp-schema-pro-2.10.1.zip seo-by-rank-math.1.0.247.zip WPML-otgs-installer-plugin.3.1.13.zip; do
   if [[ -f "$plugin_zip" ]]; then
     rm -f "$plugin_zip" && echo "🧼 Deleted $plugin_zip"
   fi
