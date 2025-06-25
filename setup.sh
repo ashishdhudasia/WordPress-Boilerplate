@@ -131,7 +131,7 @@ wp option update home "$SITE_URL"
 
 echo "🔌 Installing essential plugins..."
 if [[ "$SETUP_MODE" == "full" ]]; then
-  wp plugin install contact-form-7 wk-google-analytics cookie-law-info updraftplus wordpress-seo --activate
+  wp plugin install contact-form-7 wk-google-analytics cookie-law-info updraftplus --activate
 
   echo "📦 Installing custom ZIP plugins for full setup..."
 
